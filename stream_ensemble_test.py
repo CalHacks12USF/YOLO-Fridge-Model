@@ -5,13 +5,44 @@ import cv2
 import requests
 from ultralytics import YOLO
 
-# COCO class indices
+# Lightweight .env loader (no external dependency required)
+def _load_dotenv_inline(path: str = ".env"):
+    try:
+        if not os.path.exists(path):
+            return
+        with open(path, "r") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if "=" not in line:
+                    continue
+                key, val = line.split("=", 1)
+                key = key.strip()
+                val = val.strip().strip('"').strip("'")
+                # don't overwrite if already set in the environment
+                if key and key not in os.environ:
+                    os.environ[key] = val
+    except Exception:
+        # best-effort; ignore errors silently
+        pass
+
+# Try python-dotenv first; fall back to inline loader
+try:
+    from dotenv import load_dotenv  # type: ignore
+    load_dotenv()
+except Exception:
+    _load_dotenv_inline()
+
+# COCO class indices for 'person' (0) and 'bottle' (39)
 COCO_PERSON = 0
 COCO_BOTTLE = 39
 
+# Helper function: get current UTC time in ISO 8601 format
 def iso_utc():
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+# Helper function: POST w/ exponential backoff
 def post_with_backoff(url, payload, headers, tries=3, base=0.5):
     for i in range(tries):
         try:
@@ -23,7 +54,9 @@ def post_with_backoff(url, payload, headers, tries=3, base=0.5):
                 raise
             time.sleep(base * (2 ** i))
 
+# Main function
 def main():
+    # Parse args for CLI
     ap = argparse.ArgumentParser(description="Fridge + COCO(person,bottle) streaming predict (POST on change every 10s)")
     ap.add_argument("--fridge_model", default="runs/detect/train/weights/best.pt", help="Path to your trained fridge model")
     ap.add_argument("--coco_model",   default="yolov8n.pt", help="COCO model to use for person/bottle")
@@ -36,11 +69,11 @@ def main():
     ap.add_argument("--interval",     type=int,   default=10, help="Seconds between JSON posts/checks")
     args = ap.parse_args()
 
-    # Endpoint / auth from env
+    # Endpoint / auth from env (.env supported)
     ENDPOINT = os.getenv("SUPABASE_POST_URL")
     API_KEY  = os.getenv("SUPABASE_SERVICE_ROLE")
     if not ENDPOINT:
-        sys.exit("Set SUPABASE_POST_URL env var to your POST endpoint.")
+        sys.exit("Set SUPABASE_POST_URL in your environment or .env file (e.g., SUPABASE_POST_URL=https://...)")
 
     headers = {"Content-Type": "application/json"}
     if API_KEY:

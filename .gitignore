@@ -11,6 +11,7 @@ __pycache__/
 yolo-venv/
 venv/
 .env/
+.env
 
 # Model weights and outputs
 *.pt
@@ -37,3 +38,4 @@ Thumbs.db
 # Editor configs / caches
 .idea/
 .vscode/
+.github/
