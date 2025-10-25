@@ -1,0 +1,5 @@
+train: images/train
+val: images/val
+
+nc: 12
+names: ['Bread', 'Eggs', 'Grapes', 'Milk', 'Orange', 'Soda Can', 'Yogurt', 'apple', 'avocado', 'banana', 'empty', 'lime']

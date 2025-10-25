@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.so
+*.egg-info/
+*.egg
+*.log
+
+# Virtual environments
+yolo-venv/
+venv/
+.env/
+
+# Model weights and outputs
+*.pt
+*.onnx
+*.engine
+*.tflite
+*.pth
+*.ckpt
+runs/
+exports/
+project-*/          
+
+# Label Studio export dirs
+
+# Data
+data/
+images/
+labels/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Editor configs / caches
+.idea/
+.vscode/
